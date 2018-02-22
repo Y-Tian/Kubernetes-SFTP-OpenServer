@@ -1,0 +1,53 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    {{- include "release_labels" . | indent 4 }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      initContainers:
+      - name: init-mkdir
+        image: busybox
+        volumeMounts:
+        - name: sample-data
+          mountPath: /sample
+        command: ["sh", "-c"]
+        args: ["mkdir -p /sample/test1 && mkdir -p /sample/test2"]
+      containers:
+        - name: sftp
+          image: {{ .Values.global.registry }}{{ .Values.image.tag | replace ":" "" }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - name: sample-data
+            mountPath: /chroots/testUser/home/testUser/sample
+            subPath: test1
+          command: ["/bin/sh", "-c"]
+          args: ["echo $SSH_PUBKEY > /chroots/testUser/home/testUser/.ssh/authorized_keys; 
+                  sudo chown -R testUser:sftpgroup /chroots/testUser/home/testUser/*; 
+                  /usr/sbin/sshd -D"]
+          env:
+          - name: "SSH_HOST"
+            value: "localhost"
+          - name: "SSH_PUBKEY"
+            value: #user public key goes here
+          ports:
+          - containerPort: 22
+            name: http
+            protocol: TCP 
+      volumes:
+        - name: sample-data
+{{- if .Values.release_pvc.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-{{ .Values.release_pvc.shortname }}
+{{- else if .Values.internal_pvc.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ template "fullname" . }}-internal
+{{- else }}
+          emptyDir: {}
+{{- end }}

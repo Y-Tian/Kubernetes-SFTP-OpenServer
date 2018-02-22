@@ -1,0 +1,27 @@
+replicaCount: 1
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: sshdhost
+  type: ClusterIP
+  externalPort: 22
+  internalPort: 22
+
+# This allows you to wire the PV mount point to an existing PVC
+# If enabled this will take precedence over internal-pvc
+release_pvc:
+  enabled: false
+  shortname: ""
+
+# This is for standalone/testing operation
+internal_pvc:
+  enabled: false
+  size: 20Gi
+  class: standard
+
+resources: {}
+
+global:
+  registry: 

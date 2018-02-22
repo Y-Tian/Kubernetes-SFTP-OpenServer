@@ -1,0 +1,16 @@
+{{- if .Values.internal_pvc.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "fullname" . }}-internal
+  labels:
+    {{- include "release_labels" . | indent 4 }}
+  annotations:
+    volume.beta.kubernetes.io/storage-class: {{.Values.internal_pvc.class}}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{.Values.internal_pvc.size}}
+{{- end }}
