@@ -26,7 +26,7 @@ What things you need to install the software and how to install them
 
 7. ```minikube start --vm-driver=xhyve```
 
-8.```helm init```
+8. ```helm init```
 
 9. Install a SFTP service: https://filezilla-project.org/
 
